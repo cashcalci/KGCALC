@@ -1,126 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>USDT Profit Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KG Price Calculator</title>
 
-<style>
-*{box-sizing:border-box;font-family:system-ui;margin:0}
-body{background:#020617;color:#fff;padding:12px}
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial, sans-serif;
+    }
 
-.card{
-  max-width:480px;margin:auto;background:#111827;
-  padding:16px;border-radius:18px;
-  box-shadow:0 10px 30px rgba(0,0,0,.5)
-}
-h2{text-align:center;margin-bottom:10px}
+    body{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:linear-gradient(135deg,#0f172a,#1e293b);
+      padding:20px;
+    }
 
-input{
-  width:100%;padding:12px;margin:6px 0 10px;
-  border:none;border-radius:10px;font-size:16px;
-  background:#020617;color:#fff
-}
-input:focus{outline:2px solid #22c55e}
+    .card{
+      width:100%;
+      max-width:400px;
+      background:#fff;
+      border-radius:24px;
+      padding:30px 25px;
+      box-shadow:0 15px 35px rgba(0,0,0,0.25);
+    }
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.box{
-  background:#020617;padding:10px;border-radius:10px;
-  font-size:14px;display:flex;justify-content:space-between
-}
-.big{grid-column:span 2;font-size:16px;padding:12px}
+    .title{
+      text-align:center;
+      font-size:30px;
+      font-weight:700;
+      color:#111827;
+      margin-bottom:30px;
+    }
 
-/* Highlighted values */
-.profit{color:#facc15;font-weight:bold}   /* Yellow */
-.tax{color:#ef4444;font-weight:bold}      /* Red */
-.finalProfit{color:#22c55e;font-weight:bold} /* Green */
+    .input-group{
+      margin-bottom:20px;
+    }
 
-.green{color:#22c55e;font-weight:bold}
-.red{color:#ef4444;font-weight:bold}
-</style>
+    label{
+      display:block;
+      margin-bottom:8px;
+      font-weight:600;
+      color:#374151;
+      font-size:15px;
+    }
+
+    input{
+      width:100%;
+      padding:15px;
+      border:none;
+      outline:none;
+      background:#f3f4f6;
+      border-radius:14px;
+      font-size:16px;
+      transition:0.3s;
+    }
+
+    input:focus{
+      background:#fff;
+      border:2px solid #2563eb;
+      box-shadow:0 0 10px rgba(37,99,235,0.2);
+    }
+
+    .result-box{
+      margin-top:25px;
+      background:#2563eb;
+      color:#fff;
+      border-radius:20px;
+      padding:22px;
+      text-align:center;
+    }
+
+    .result-label{
+      font-size:15px;
+      opacity:0.9;
+    }
+
+    .result{
+      margin-top:8px;
+      font-size:36px;
+      font-weight:700;
+    }
+
+    @media(max-width:480px){
+      .title{
+        font-size:26px;
+      }
+
+      .result{
+        font-size:30px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<div class="card">
-<h2>USDT → INR Profit</h2>
 
-<input id="inr" type="number" placeholder="INR Invested">
-<input id="usdt" type="number" placeholder="USDT Received">
-<input id="fee" type="number" placeholder="Transfer Fee (USDT)">
-<input id="rate" type="number" placeholder="Sell Rate ₹ / USDT">
+  <div class="card">
 
-<div class="grid">
-<div class="box"><span>Real Buy Rate</span><span id="buyRate">₹0</span></div>
-<div class="box"><span>Final USDT</span><span id="fUSDT">0</span></div>
+    <div class="title">KG Price Calculator</div>
 
-<div class="box"><span>INR After Sell</span><span id="fINR">₹0</span></div>
-<div class="box"><span>ROI</span><span id="roi">0%</span></div>
+    <div class="input-group">
+      <label>Enter KG</label>
+      <input type="number" id="kg" placeholder="e.g. 2.5">
+    </div>
 
-<div class="box"><span>Break-even</span><span id="be">₹0</span></div>
-<div class="box profit"><span>Profit</span><span id="profit">₹0</span></div>
+    <div class="input-group">
+      <label>Price Per KG (₹)</label>
+      <input type="number" id="priceKg" placeholder="e.g. 300">
+    </div>
 
-<div class="box tax"><span>30% Tax</span><span id="tax">₹0</span></div>
-<div class="box big finalProfit"><span>Final Profit</span><span id="final">₹0</span></div>
-</div>
-</div>
+    <div class="result-box">
+      <div class="result-label">Total Amount</div>
+      <div class="result" id="total">₹0.00</div>
+    </div>
 
-<script>
-["inr","usdt","fee","rate"].forEach(id=>{
- document.getElementById(id).addEventListener("input",calculate);
-});
+  </div>
 
-function num(id){ return parseFloat(document.getElementById(id).value) || 0 }
-function set(id,val){ document.getElementById(id).innerText = val }
-function color(el,val){ el.className = val>=0 ? "green" : "red" }
+  <script>
+    const kgInput = document.getElementById("kg");
+    const priceKgInput = document.getElementById("priceKg");
+    const total = document.getElementById("total");
 
-function calculate(){
+    function calculatePrice() {
 
-let inrInvested = num("inr");
-let usdtReceived = num("usdt");
-let transferFee = num("fee");
-let sellRate = num("rate");
+      const kg = parseFloat(kgInput.value) || 0;
+      const priceKg = parseFloat(priceKgInput.value) || 0;
 
-// Final usable USDT
-let finalUSDT = Math.max(usdtReceived - transferFee, 0);
+      const finalPrice = kg * priceKg;
 
-// Real buy price per usable USDT
-let realBuyRate = finalUSDT>0 ? inrInvested / finalUSDT : 0;
+      total.innerText = "₹" + finalPrice.toFixed(2);
+    }
 
-// INR after selling
-let inrAfterSell = finalUSDT * sellRate;
+    kgInput.addEventListener("input", calculatePrice);
+    priceKgInput.addEventListener("input", calculatePrice);
 
-// Profit before tax
-let profit = inrAfterSell - inrInvested;
-
-// Tax only if profit
-let tax = profit>0 ? profit * 0.30 : 0;
-
-// Final profit after tax
-let finalProfit = profit - tax;
-
-// ROI
-let roi = inrInvested>0 ? (finalProfit/inrInvested)*100 : 0;
-
-// Break-even sell rate
-let breakeven = realBuyRate;
-
-// Display
-set("buyRate","₹"+realBuyRate.toFixed(2));
-set("fUSDT",finalUSDT.toFixed(2));
-set("fINR","₹"+inrAfterSell.toFixed(0));
-set("be","₹"+breakeven.toFixed(2));
-set("tax","₹"+tax.toFixed(0));
-
-let r=document.getElementById("roi");
-r.innerText = roi.toFixed(2)+"%";
-color(r,roi);
-
-let p=document.getElementById("profit");
-p.innerText="₹"+profit.toFixed(0);
-
-let f=document.getElementById("final");
-f.innerText="₹"+finalProfit.toFixed(0);
-}
-</script>
+  </script>
 
 </body>
 </html>
